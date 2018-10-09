@@ -1,4 +1,4 @@
-import pytoshop
+import pytoshop, os
 import numpy as np
 from PIL import Image
 from pytoshop.user import nested_layers as nl
@@ -16,15 +16,15 @@ data = ImageData(channels=img)
 
 img_layer_conf = dict(
     name = 'layer_added',
+    channels = channels,
     visible = True,
     opacity = 255,
     group_id = 0,
     blend_mode = BlendMode.normal,
     top = 0,
     left = 0,
-    bottom = 240,
-    right = 240,
-    channels = channels,
+    bottom = None,
+    right = None,
     metadata = None,
     layer_color = 0,
     color_mode = None)
@@ -40,8 +40,9 @@ layers_to_psd_conf = dict(
 
 
 if __name__ == "__main__":
-    PSDFILE = 'example.psd'
-    with open(PSDFILE, 'rb') as fd:
+    PSD_FILE = 'example.psd'
+    PSD_FILE_NAME, PSD_EXT = os.path.splitext(PSD_FILE)
+    with open(PSD_FILE, 'rb') as fd:
         psd = pytoshop.read(fd)
 
         nested_stuff = nl.psd_to_nested_layers(psd)
@@ -51,11 +52,22 @@ if __name__ == "__main__":
         nl.pprint_layers(nested_stuff)
 
         psd_tunned = nl.nested_layers_to_psd(layers = nested_stuff,
-                                             color_mode = ColorMode.rgb,
-                                             size = (240, 240))
+                                             color_mode = ColorMode.rgb)
 
-        with open(PSDFILE.split('.')[0] + '_tunned.psd', 'wb') as fe:
+        SAVE_PSD_FILE_NAME = PSD_FILE_NAME + '_tunned'
+        while ((SAVE_PSD_FILE_NAME + '.psd') in os.listdir()):
+            i = 2
+            if i == 2:
+                SAVE_PSD_FILE_NAME += '_' + str(i)
+            else :
+                SAVE_PSD_FILE_NAME = SAVE_PSD_FILE_NAME[:-2] + '_' + str(i)
+            i += 1
+
+        with open(SAVE_PSD_FILE_NAME + '.psd', 'wb') as fe:
             psd_tunned.write(fe)
+
+        print('PSD file saved at {}'.format(SAVE_PSD_FILE_NAME + PSD_EXT))
+
 
 
 
